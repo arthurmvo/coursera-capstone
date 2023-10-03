@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { View } from 'react-native';
+import Header from '../components/Header';
 
 export default function SplashScreen() {
   return (
-    <View>
-      <Text>Spash Screen</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Header />
     </View>
   );
 }
