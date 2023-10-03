@@ -34,11 +34,12 @@ const selectAllMenu = () => {
 const getDataFromApiAsync = async () => {
   try {
     const response = await fetch(
-      'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/menu.json',
+      'https://raw.githubusercontent.com/arthurmvo/coursera-capstone/main/menu.json',
     );
     const json = await response.json();
     return json.menu;
   } catch (error) {
+    console.log('deui ruim');
     console.error(error);
   }
 };
@@ -79,7 +80,7 @@ const checkMenuTableAndPopulateData = async () => {
   const dbMenu = await selectAllMenu();
   if (dbMenu?.length) return dbMenu;
   const menuItemsFromApi = await getDataFromApiAsync();
-  // console.log('menuItemsFromApi', menuItemsFromApi);
+  console.log('menuItemsFromApi', menuItemsFromApi);
   for (const item of menuItemsFromApi) {
     await insertDish(
       item.title,
