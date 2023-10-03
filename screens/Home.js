@@ -6,23 +6,44 @@ import {
   StyleSheet,
   Text,
   View,
+  RefreshControl,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { colors } from '../utils/colors';
-import { filterMenuItems, selectAllMenu } from '../db';
+import {
+  filterMenuItems,
+  selectAllMenu,
+  resetDatabase,
+  checkMenuTableAndPopulateData,
+} from '../db';
 import debounce from '../utils/debounce';
 import HeroSection from '../components/Hero';
+import SplashScreen from '../screens/SplashScreen';
 
 export default function HomeScreen({ navigation }) {
   const [menuItems, setMenuItems] = useState([]);
   const [activeFilters, setActiveFilters] = useState([]);
   const [searchInput, setSearchInput] = useState('');
   const [filterCategories, setFilterCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const loadMenu = async () => {
     try {
-      const menuItems = await selectAllMenu();
-      setMenuItems(menuItems);
+      let menuItems = await selectAllMenu();
+      console.log('menuItems', menuItems);
+      if (!menuItems.length) {
+        console.log('Checking For items');
+        setIsLoading(true);
+        await checkMenuTableAndPopulateData();
+        console.log('Done Checking For items');
+        setIsLoading(false);
+        menuItems = await selectAllMenu();
+        console.log('menuItems', menuItems);
+        setMenuItems(menuItems);
+      } else {
+        setMenuItems(menuItems);
+      }
+      console.log('checkpoint');
       // This code makes it so that the item categories are dynamic and will auto-populate if a new category is added.
       setFilterCategories([
         ...new Set(
@@ -39,6 +60,21 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     loadMenu();
   }, []);
+
+  const handleReload = async () => {
+    resetDatabase();
+    setIsLoading(true);
+
+    const existingMenuItems = await selectAllMenu();
+    if (existingMenuItems.length) {
+      setIsLoading(false);
+      return;
+    }
+    console.log('Checking For items');
+    await checkMenuTableAndPopulateData();
+    setIsLoading(false);
+    loadMenu();
+  };
 
   const onFilterClick = (item) => {
     const indexOfItem = activeFilters.indexOf(item);
@@ -63,6 +99,10 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     filterMenu();
   }, [activeFilters]);
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
 
   return (
     <View style={styles.homeContainer}>
@@ -109,7 +149,11 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.itemPrice}>${item.price}</Text>
               </View>
               <View style={styles.itemImageContainer}>
-                <Image source={{ uri: item.image }} style={styles.menuImage} />
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.menuImage}
+                  onError={(error) => console.log(item.image)}
+                />
               </View>
             </View>
           );
@@ -125,6 +169,9 @@ export default function HomeScreen({ navigation }) {
             }}
           />
         )}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={handleReload} />
+        }
       />
     </View>
   );

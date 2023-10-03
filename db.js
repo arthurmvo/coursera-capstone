@@ -34,7 +34,7 @@ const selectAllMenu = () => {
 const getDataFromApiAsync = async () => {
   try {
     const response = await fetch(
-      'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/capstone.json',
+      'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/menu.json',
     );
     const json = await response.json();
     return json.menu;
@@ -79,20 +79,17 @@ const checkMenuTableAndPopulateData = async () => {
   const dbMenu = await selectAllMenu();
   if (dbMenu?.length) return dbMenu;
   const menuItemsFromApi = await getDataFromApiAsync();
-
-  const formattedItemsFromApi = menuItemsFromApi.map((item) => ({
-    ...item,
-    image: `https://github.com/Meta-Mobile-Developer-PC/Working-With-Data-API/blob/main/images/${item.image}?raw=true`,
-  }));
-  for (const item of formattedItemsFromApi) {
+  // console.log('menuItemsFromApi', menuItemsFromApi);
+  for (const item of menuItemsFromApi) {
     await insertDish(
-      item.name,
+      item.title,
       item.description,
       item.price,
       item.image,
       item.category,
     );
   }
+  console.log('check');
   const menuItems = await selectAllMenu();
   return menuItems;
 };
